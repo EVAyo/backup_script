@@ -154,7 +154,7 @@ Backup_data() {
 	user) Size="$userSize" && data_path="$path2/$name" ;;
 	data) Size="$dataSize" && data_path="$path/$1/$name" ;;
 	obb) Size="$obbSize" && data_path="$path/$1/$name" ;;
-	*) [[ -f $app_details ]] && Size="$(cat "$app_details" | awk "/$1Size/"'{print $1}' | cut -f2 -d '=' | tail -n1 | sed 's/\"//g')" ; data_path="$2" && Compression_method=tar && zsize=1 ;;
+	*) [[ -f $app_details ]] && Size="$(cat "$app_details" | awk "/$1Size/"'{print $1}' | cut -f2 -d '=' | tail -n1 | sed 's/\"//g')" ; data_path="$2" ; Compression_method=tar ; zsize=1
 	esac
 	if [[ -d $data_path ]]; then
 		if [[ $Size != $(du -ks "$data_path" | awk '{print $1}') ]]; then
@@ -193,15 +193,11 @@ recovery_backup() {
 	echo "$name2 $name $apk_path2" >>"$script_path/應用列表.txt"
 	if [[ $i = $r ]]; then
 		if [[ -f $tools_path/META-INF/com/google/android/update-binary ]]; then
-			echoRgb "輸出用於recovery的備份卡刷包"
-			rm -rf "$MODDIR/recovery卡刷備份.zip" ; mkdir -p "$MODDIR/tmp"
+			echoRgb "輸出用於recovery的備份卡刷包" ; rm -rf "$MODDIR/recovery卡刷備份.zip" ; mkdir -p "$MODDIR/tmp"
 			tar -cpf - -C "$tools_path" "META-INF" "script" "bin" "apk" | tar --delete "script/restore3" --delete "bin/busybox_path" --delete "bin/lz4" --delete "bin/zip" | pv | tar --recursive-unlink -xmpf - -C "$MODDIR/tmp"
 			(cd "$MODDIR/tmp" && zip -r "recovery卡刷備份.zip" *)
 			echo_log "打包卡刷包"
-			if [[ $result = 0 ]]; then
-				mv "$MODDIR/tmp/recovery卡刷備份.zip" "$MODDIR" && rm -rf "$MODDIR/tmp" "$script_path/應用列表.txt"
-				echoRgb "輸出:$MODDIR/recovery卡刷備份.zip" "2"
-			fi
+			[[ $result = 0 ]] && (mv "$MODDIR/tmp/recovery卡刷備份.zip" "$MODDIR" && rm -rf "$MODDIR/tmp" "$script_path/應用列表.txt" ; echoRgb "輸出:$MODDIR/recovery卡刷備份.zip" "2")
 		else
 			echoRgb "update-binary卡刷腳本遺失" "0"
 		fi
@@ -293,18 +289,15 @@ while [[ $i -le $r ]]; do
 			[[ ! -f $Backup_folder/恢復多媒體數據.sh ]] && cp -r "$script_path/restore3" "$Backup_folder/恢復多媒體數據.sh"
 			app_details="$Backup_folder/app_details"
 			[[ -f $app_details ]] && . "$app_details"
-			echo "$Custom_path" | grep -v "#" | sed -e '/^$/d' | while read k; do
+			echo "$Custom_path" | grep -v "#" | sed -e '/^$/d' | while read; do
 				echoRgb "備份第$A個資料夾 總共$B個 剩下$((B-A))個"
-				Backup_data "${k##*/}" "$k"
+				Backup_data "${REPLY##*/}" "$REPLY"
 				echoRgb "完成$((A*100/B))% $hx$(df -h "$data" | awk 'END{print "剩餘:"$3"使用率:"$4}')" && let A++
 			done
 			endtime 1 "自定義備份"
 		fi
 	fi
-	if [[ $ERROR -ge 5 ]]; then
-		echoRgb "錯誤次數達到上限 環境已重設" "0" && rm -rf "$filepath"
-		echoRgb "請重新執行腳本" "0" && exit
-	fi
+	[[ $ERROR -ge 5 ]] && echoRgb "錯誤次數達到上限 環境已重設\n -請重新執行腳本" "0" && rm -rf "$filepath" && exit 2
 	let i++
 done
 

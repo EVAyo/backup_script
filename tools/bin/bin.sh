@@ -17,7 +17,7 @@ backup_version="V10 2021/10/10-10:59"
 #設置二進制命令目錄位置
 [[ $bin_path = "" ]] && echo "未正確指定bin.sh位置" && exit 2
 bin_path="${bin_path/'/storage/emulated/'/'/data/media/'}"
-chmod -R 777 "$bin_path"
+MODDIR="${MODDIR/'/storage/emulated/'/'/data/media/'}"
 Status_log="$MODDIR/執行狀態日誌.txt"
 rm -rf "$Status_log"
 filepath="/data/backup_tools"

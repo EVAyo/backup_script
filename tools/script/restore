@@ -55,12 +55,12 @@ Release_data() {
 	echo_log "$FILE_NAME 解壓縮($FILE_NAME2)"
 	if [[ $result = 0 ]]; then
 		if [[ $FILE_NAME2 = user ]]; then
-			if [[ -f /config/sdcardfs/$name/appid ]]; then
-				G="$(cat "/config/sdcardfs/$name/appid" | grep -Eo '[0-9]+')"
-			else
-				G="$(dumpsys package "$name" | awk '/userId=/{print $1}' | cut -f2 -d '=' | head -1 | grep -Eo '[0-9]+')"
-			fi
 			if [[ -d $X ]]; then
+				if [[ -f /config/sdcardfs/$name/appid ]]; then
+					G="$(cat "/config/sdcardfs/$name/appid")"
+	 			else
+					G="$(dumpsys package "$name" | awk '/userId=/{print $1}' | cut -f2 -d '=' | head -1)"
+				fi ; G="$(echo "$G" | grep -Eo '[0-9]+')"
 				if [[ $G != "" ]]; then
 					echoRgb "路徑:$X"
 					Path_details="$(stat -c "%A/%a %U/%G" "$X")"
